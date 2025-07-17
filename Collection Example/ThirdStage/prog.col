@@ -1,0 +1,14 @@
+collection col;
+collection vol;
+collection unify;
+col = {"one", "two", "three"};
+vol = {"two", "three", "four"};
+output "col:" col;
+output "vol:" vol;
+unify = col+vol;
+output "unify:" unify;
+collection a;
+collection res;
+a = {"Literal1", "Literal2", "Literal3"};
+res = a + {"Literal1", "Literal4", "Literal3"};
+output "Res:" res;

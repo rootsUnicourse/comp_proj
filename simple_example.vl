@@ -1,0 +1,12 @@
+{
+scl x;
+scl y;
+vec v{3};
+x = 5;
+y = 10;
+v = [1, 2, 3];
+x = x + y;
+v = v * 2;
+print "x is": x;
+print "v is": v;
+} 
