@@ -30,6 +30,9 @@ void GenerateBlockStart();
 void GenerateBlockEnd();
 
 // Expression Generation Functions
+char* GenerateExprOp(char* left, char op, char* right);
+char* GenerateIndexOp(char* left, char* right);
+char* DetermineExprType(char* expr);
 char* GenerateSclOp(char* left, char op, char* right);
 char* GenerateVecOp(char* left, char op, char* right);
 char* GenerateVecScalarOp(char* vec, char op, char* scl);
@@ -51,8 +54,7 @@ static int tempVarCount = 0;
 %token <ival> t_NUM
 %token t_SCL t_VEC t_IF t_LOOP t_PRINT t_DOT
 
-%type <str> expression scalar_expr vector_expr
-%type <str> vector_literal element_list
+%type <str> expression vector_literal element_list
 %type <str> variable print_elements
 
 %left '+' '-'
@@ -64,6 +66,7 @@ static int tempVarCount = 0;
 %%
 
 program: statement_list
+    | '{' statement_list '}'
     ;
 
 statement_list: statement
@@ -75,7 +78,6 @@ statement: variable_declaration ';'
     | print_statement ';'
     | if_statement
     | loop_statement
-    | block
     ;
 
 variable_declaration: t_SCL t_ID {
@@ -99,87 +101,35 @@ assignment: t_ID '=' expression {
     }
     ;
 
-expression: scalar_expr { $$ = $1; }
-    | vector_expr { $$ = $1; }
-    ;
-
-scalar_expr: t_NUM {
+expression: t_NUM {
         char* temp = malloc(20);
         sprintf(temp, "%d", $1);
         $$ = temp;
     }
     | t_ID {
-        if (getTyp($1) != SCL) {
-            yyerror("Variable is not scalar");
-        }
-        $$ = CopyStr($1);
-    }
-    | scalar_expr '+' scalar_expr {
-        $$ = GenerateSclOp($1, '+', $3);
-    }
-    | scalar_expr '-' scalar_expr {
-        $$ = GenerateSclOp($1, '-', $3);
-    }
-    | scalar_expr '*' scalar_expr {
-        $$ = GenerateSclOp($1, '*', $3);
-    }
-    | scalar_expr '/' scalar_expr {
-        $$ = GenerateSclOp($1, '/', $3);
-    }
-    | '(' scalar_expr ')' {
-        $$ = $2;
-    }
-    | vector_expr t_DOT vector_expr {
-        $$ = GenerateDotProduct($1, $3);
-    }
-    | vector_expr ':' scalar_expr {
-        $$ = GenerateVecIndex($1, $3);
-    }
-    ;
-
-vector_expr: t_ID {
-        if (getTyp($1) != VEC) {
-            yyerror("Variable is not vector");
-        }
         $$ = CopyStr($1);
     }
     | vector_literal { $$ = $1; }
-    | scalar_expr {
-        char* temp = CreateTempVar();
-        fprintf(stdout, "assign_scalar_to_vector(%s, %s, %d);\n", temp, $1, 1);
-        $$ = temp;
+    | expression '+' expression {
+        $$ = GenerateExprOp($1, '+', $3);
     }
-    | vector_expr '+' vector_expr {
-        $$ = GenerateVecOp($1, '+', $3);
+    | expression '-' expression {
+        $$ = GenerateExprOp($1, '-', $3);
     }
-    | vector_expr '-' vector_expr {
-        $$ = GenerateVecOp($1, '-', $3);
+    | expression '*' expression {
+        $$ = GenerateExprOp($1, '*', $3);
     }
-    | vector_expr '*' vector_expr {
-        $$ = GenerateVecOp($1, '*', $3);
+    | expression '/' expression {
+        $$ = GenerateExprOp($1, '/', $3);
     }
-    | vector_expr '/' vector_expr {
-        $$ = GenerateVecOp($1, '/', $3);
+    | expression t_DOT expression {
+        $$ = GenerateDotProduct($1, $3);
     }
-    | vector_expr '+' scalar_expr {
-        $$ = GenerateVecScalarOp($1, '+', $3);
+    | expression ':' expression {
+        $$ = GenerateIndexOp($1, $3);
     }
-    | vector_expr '-' scalar_expr {
-        $$ = GenerateVecScalarOp($1, '-', $3);
-    }
-    | vector_expr '*' scalar_expr {
-        $$ = GenerateVecScalarOp($1, '*', $3);
-    }
-    | vector_expr '/' scalar_expr {
-        $$ = GenerateVecScalarOp($1, '/', $3);
-    }
-    | '(' vector_expr ')' {
+    | '(' expression ')' {
         $$ = $2;
-    }
-    | vector_expr ':' vector_expr {
-        char* temp = CreateTempVar();
-        fprintf(stdout, "vector_index_vector(%s, %s, %s);\n", temp, $1, $3);
-        $$ = temp;
     }
     ;
 
@@ -191,10 +141,10 @@ vector_literal: '[' element_list ']' {
     }
     ;
 
-element_list: scalar_expr {
+element_list: expression {
         $$ = CopyStr($1);
     }
-    | element_list ',' scalar_expr {
+    | element_list ',' expression {
         char* temp = malloc(strlen($1) + strlen($3) + 3);
         sprintf(temp, "%s, %s", $1, $3);
         $$ = temp;
@@ -216,12 +166,12 @@ print_elements: expression {
     }
     ;
 
-if_statement: t_IF scalar_expr block {
+if_statement: t_IF expression block {
         GenerateIf($2);
     }
     ;
 
-loop_statement: t_LOOP scalar_expr block {
+loop_statement: t_LOOP expression block {
         GenerateLoop($2);
     }
     ;
@@ -273,10 +223,44 @@ char* CreateTempVar() {
     char* temp = malloc(20);
     sprintf(temp, "temp%d", tempVarCount++);
     fprintf(stdout, "int %s[MAX_VEC_SIZE];\n", temp);
+    fprintf(stdout, "int %s_size = MAX_VEC_SIZE;\n", temp);
     return temp;
 }
 
 // Code Generation Functions
+
+char* GenerateExprOp(char* left, char op, char* right) {
+    // Determine operation type based on operands
+    char* leftType = DetermineExprType(left);
+    char* rightType = DetermineExprType(right);
+    
+    if (strcmp(leftType, "vector") == 0 && strcmp(rightType, "scalar") == 0) {
+        return GenerateVecScalarOp(left, op, right);
+    } else if (strcmp(leftType, "vector") == 0 && strcmp(rightType, "vector") == 0) {
+        return GenerateVecOp(left, op, right);
+    } else {
+        return GenerateSclOp(left, op, right);
+    }
+}
+
+char* GenerateIndexOp(char* left, char* right) {
+    return GenerateVecIndex(left, right);
+}
+
+char* DetermineExprType(char* expr) {
+    // Simple heuristic: check if it's a known vector variable
+    // Numbers are scalars, temp variables are vectors, check symbol table for others
+    if (isdigit(expr[0]) || (expr[0] == '(' && isdigit(expr[1]))) {
+        return "scalar";
+    }
+    if (strncmp(expr, "temp", 4) == 0) {
+        return "vector";
+    }
+    if (getTyp(expr) == VEC) {
+        return "vector";
+    }
+    return "scalar";
+}
 
 void GenerateSclDef(char* var) {
     fprintf(stdout, "int %s;\n", var);
@@ -332,16 +316,24 @@ char* GenerateVecIndex(char* vec, char* index) {
 char* GenerateVecLiteral(char* elements) {
     char* temp = CreateTempVar();
     if (strlen(elements) > 0) {
-        fprintf(stdout, "int temp_init[] = {%s};\n", elements);
-        fprintf(stdout, "copy_array_to_vector(%s, temp_init, sizeof(temp_init)/sizeof(int));\n", temp);
+        fprintf(stdout, "int temp_init_%d[] = {%s};\n", tempVarCount-1, elements);
+        fprintf(stdout, "copy_array_to_vector(%s, temp_init_%d, sizeof(temp_init_%d)/sizeof(int));\n", temp, tempVarCount-1, tempVarCount-1);
     }
     return temp;
 }
 
 void GeneratePrint(char* prompt, char* elements) {
     fprintf(stdout, "printf(%s);\n", prompt);
-    // For now, just print placeholder - proper implementation would parse elements
-    fprintf(stdout, "printf(\"[elements]\\n\");\n");
+    
+    // Parse the elements (for now assume single element)
+    if (strcmp(DetermineExprType(elements), "vector") == 0) {
+        // Print vector elements
+        fprintf(stdout, "print_vector(%s, %s_size);\n", elements, elements);
+        fprintf(stdout, "printf(\"\\n\");\n");
+    } else {
+        // Print scalar value  
+        fprintf(stdout, "printf(\"%%d\\n\", %s);\n", elements);
+    }
 }
 
 void GenerateIf(char* condition) {

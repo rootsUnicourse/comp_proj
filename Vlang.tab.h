@@ -58,7 +58,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 46 "vlang.y"
+#line 48 "Vlang.y"
 
     char *str;
     int ival;
@@ -66,7 +66,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 70 "vlang.tab.h"
+#line 70 "Vlang.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
