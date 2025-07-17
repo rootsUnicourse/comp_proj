@@ -13,21 +13,9 @@ lex.yy.c: Vlang.tab.c Vlang.l
 Vlang.tab.c: Vlang.y
 	bison -d Vlang.y
 
-# Compile example program to C
-example.c: example.vl vlang.exe
-	vlang.exe < example.vl > example.c
-
-# Compile generated C code
-example.exe: example.c runtime.c
-	gcc example.c runtime.c -o example.exe
-
-# Test the complete pipeline
-test: example.exe
-	example.exe
-
 # Clean generated files
 clean:
-	del lex.yy.c Vlang.tab.c Vlang.tab.h vlang.exe example.c example.exe
+	del lex.yy.c Vlang.tab.c Vlang.tab.h vlang.exe
 
 # Help
 help:
