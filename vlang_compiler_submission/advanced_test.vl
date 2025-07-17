@@ -1,0 +1,53 @@
+{
+// Advanced Vlang Test - Multiple Features
+scl a;
+scl b;
+scl result;
+vec v1{4};
+vec v2{4};
+vec v3{4};
+
+// Basic scalar operations
+a = 10;
+b = 3;
+result = a + b * 2;
+print "a + b * 2 =": result;
+
+// Vector initialization and operations
+v1 = [5, 10, 15, 20];
+v2 = [1, 2, 3, 4];
+print "v1 =": v1;
+print "v2 =": v2;
+
+// Vector arithmetic
+v3 = v1 + v2;
+print "v1 + v2 =": v3;
+
+v3 = v1 - v2;
+print "v1 - v2 =": v3;
+
+// Vector-scalar operations
+v3 = v1 * 2;
+print "v1 * 2 =": v3;
+
+v3 = v2 + 5;
+print "v2 + 5 =": v3;
+
+// Dot product
+result = v1 @ v2;
+print "v1 @ v2 (dot product) =": result;
+
+// Vector indexing
+result = v1 : 0;
+print "v1[0] =": result;
+
+result = v2 : 3;
+print "v2[3] =": result;
+
+// Complex expressions
+result = (a + b) * 2;
+print "(a + b) * 2 =": result;
+
+v3 = (v1 + v2) * 3;
+print "(v1 + v2) * 3 =": v3;
+} 

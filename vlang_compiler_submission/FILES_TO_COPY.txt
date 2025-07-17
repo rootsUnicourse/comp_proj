@@ -1,0 +1,90 @@
+VLANG COMPILER SUBMISSION - FILES TO COPY MANUALLY
+=========================================================
+
+Copy these files from your main project directory to vlang_compiler_submission/:
+
+REQUIRED SUBMISSION FILES:
+--------------------------
+
+1. LEX file:
+   - symTab.h
+
+2. YACC file:
+   (already copied: Vlang.l, Vlang.y)
+
+3. Make files:
+   (already copied: Makefile, build.bat)
+
+4. Compiler executable:
+   (already copied: vlang.exe)
+
+5. Example source file:
+   - advanced_test.vl
+
+6. Generated C/C++ file:
+   - advanced_test_final.c
+
+7. Final executable:
+   - advanced_test.exe
+
+8. Additional required files:
+   - TestVlang.c
+   - runtime.h
+   - runtime.c
+
+COPY COMMANDS FOR WINDOWS:
+--------------------------
+copy symTab.h vlang_compiler_submission\
+copy advanced_test.vl vlang_compiler_submission\
+copy advanced_test_final.c vlang_compiler_submission\
+copy advanced_test.exe vlang_compiler_submission\
+copy TestVlang.c vlang_compiler_submission\
+copy runtime.h vlang_compiler_submission\
+copy runtime.c vlang_compiler_submission\
+
+COPY COMMANDS FOR MAC/LINUX:
+-----------------------------
+cp symTab.h vlang_compiler_submission/
+cp advanced_test.vl vlang_compiler_submission/
+cp advanced_test_final.c vlang_compiler_submission/
+cp advanced_test.exe vlang_compiler_submission/
+cp TestVlang.c vlang_compiler_submission/
+cp runtime.h vlang_compiler_submission/
+cp runtime.c vlang_compiler_submission/
+
+VERIFICATION:
+-------------
+After copying, your vlang_compiler_submission/ folder should contain:
+
+✅ Vlang.l               (LEX file)
+✅ Vlang.y               (YACC file)  
+✅ symTab.h              (Symbol table definitions)
+✅ TestVlang.c           (Main driver)
+✅ runtime.h             (Runtime declarations)
+✅ runtime.c             (Runtime implementations)
+✅ Makefile              (Build system)
+✅ build.bat             (Windows build script)
+✅ vlang.exe             (Compiler executable)
+✅ advanced_test.vl      (Example Vlang source)
+✅ advanced_test_final.c (Generated C code)
+✅ advanced_test.exe     (Final executable)
+✅ README.md             (Documentation)
+✅ VIDEO_SCRIPT.md       (Video script)
+✅ FILES_TO_COPY.txt     (This file)
+
+SUBMISSION CHECKLIST:
+--------------------
+□ All 15 files copied
+□ README.md created
+□ Video script prepared
+□ Test compilation in submission folder
+□ Video recorded following script
+□ Submission folder zipped/archived
+
+ENVIRONMENT SPECIFICATION:
+--------------------------
+Environment: Windows 10 PC
+Compiler: MinGW-w64 GCC
+Parser Generator: GNU Bison
+Lexer Generator: Flex
+Target: C Language Code Generation 
